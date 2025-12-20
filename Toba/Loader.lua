@@ -2,9 +2,9 @@ local Players = game:GetService("Players")
 local _player
 
 local SCRIPTS = {
-    [123456789] = {
-        version = "1.3.0",
-        url = "https://raw.githubusercontent.com/scripts/./game.lua"
+    [137826330724902] = {
+        version = "1.0.0",
+        url = "https://raw.githubusercontent.com/Legitxwx/Tobahub/refs/heads/main/Shawarma.lua"
     },
     [987654321] = {
         version = "1.3.0",
