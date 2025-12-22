@@ -1,1 +1,108 @@
+-- [ COMMAND SYSTEM
+!g PlayerID -- Join ID Player
+!stop PlayerID -- Stop joining the player by ID
+!stopall -- Stop all ID you joined
+]
 
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local lp = Players.LocalPlayer
+
+local interval = 5
+local tracking = {}
+
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = lp:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 320, 0, 52)
+frame.Position = UDim2.new(0.5, -160, 0.18, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.BackgroundTransparency = 1
+frame.BorderSizePixel = 0
+frame.Parent = gui
+
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1,0,1,0)
+label.BackgroundTransparency = 1
+label.TextScaled = true
+label.Font = Enum.Font.GothamBold
+label.TextColor3 = Color3.fromRGB(255,255,255)
+label.Text = ""
+label.Parent = frame
+
+local function popup(text)
+	label.Text = text
+	for i = 1,0,-0.08 do
+		frame.BackgroundTransparency = i
+		task.wait(0.02)
+	end
+	task.wait(2)
+	for i = 0,1,0.08 do
+		frame.BackgroundTransparency = i
+		task.wait(0.02)
+	end
+end
+
+local function trackPlayer(id)
+	if tracking[id] then return end
+	tracking[id] = true
+
+	task.spawn(function()
+		while tracking[id] do
+			local target
+			pcall(function()
+				target = Players:GetPlayerByUserId(tonumber(id))
+			end)
+
+			if not target then
+				popup("Player not online")
+			else
+				local ok, place, job, private = pcall(function()
+					return TeleportService:GetPlayerPlaceInstanceAsync(target)
+				end)
+
+				if ok then
+					if private then
+						popup("Player is in private")
+					elseif place and job then
+						popup("Player is online")
+						TeleportService:TeleportToPlaceInstance(place, job, {lp})
+						tracking[id] = nil
+						break
+					else
+						popup("Player not online")
+					end
+				else
+					popup("Player not online")
+				end
+			end
+			task.wait(interval)
+		end
+	end)
+end
+
+local function stopTrack(id)
+	tracking[id] = nil
+	popup("Tracking stopped")
+end
+
+lp.Chatted:Connect(function(msg)
+	local id = msg:match("^!g%s+(%d+)")
+	if id then
+		trackPlayer(id)
+	end
+
+	local stopId = msg:match("^!stop%s+(%d+)")
+	if stopId then
+		stopTrack(stopId)
+	end
+
+	if msg == "!stopall" then
+		for k in pairs(tracking) do
+			tracking[k] = nil
+		end
+		popup("All tracking stopped")
+	end
+end)
