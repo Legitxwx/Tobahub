@@ -1,1 +1,133 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/stysscythe/script/main/LibTest.lua"))()
+local Window = Library.Window('Scary Shawarma Kiosk - Toba Hub')
+local tab = Window.CreateTab('Main')
+local moveTab = Window.CreateTab('Movement')
 
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualUser = game:GetService("VirtualUser")
+local Lighting = game:GetService("Lighting")
+
+local autoMake = false
+local instantPrompt = false
+local noclipEnabled = false
+local fullbrightEnabled = false
+local infJumpEnabled = false
+
+local shawarmaItems = {
+    workspace.Kit.Salad.Button.ProximityPrompt,
+    workspace.Kit.Lavash.Button.ProximityPrompt,
+    workspace.Kit.Cheese.Button.ProximityPrompt,
+    workspace.Kebab.kebabmyaso["Kebab.040"].ProximityPrompt,
+    workspace.Kit.Fry.Button.ProximityPrompt,
+    workspace.Kit.Sauce.Button.ProximityPrompt,
+    workspace.Kit.Board.ProximityPrompt,
+    workspace.Kit.popcan.ProximityPrompt,
+    workspace.Kit.Done.Lavash.ProximityPrompt
+}
+
+local function firePrompt(prompt)
+    pcall(function()
+        prompt.HoldDuration = 0
+        prompt.MaxActivationDistance = 30
+        prompt.RequiresLineOfSight = false
+        fireproximityprompt(prompt)
+    end)
+end
+
+tab.CreateButton("Make Shawarma", function()
+    for _, item in pairs(shawarmaItems) do
+        firePrompt(item)
+        task.wait(0.25)
+    end
+end)
+
+tab.CreateToggle("Auto Make Shawarma", function(state)
+    autoMake = state
+end)
+
+tab.CreateToggle("Instant Prompt", function(state)
+    instantPrompt = state
+end)
+
+tab.CreateButton("Teleport Home", function()
+    local hrp = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local doorBase = workspace:WaitForChild("Door"):WaitForChild("Base")
+    if hrp and doorBase then
+        hrp.CFrame = doorBase.CFrame + Vector3.new(0,3,0)
+    end
+end)
+
+tab.CreateButton("Teleport to Trash", function()
+    local hrp = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local trash = workspace:WaitForChild("Street"):WaitForChild("tr")
+    if hrp and trash then
+        local target = (trash:IsA("BasePart") and trash) or (trash.PrimaryPart or trash:FindFirstChildWhichIsA("BasePart", true))
+        if target then
+            hrp.CFrame = target.CFrame + Vector3.new(0,3,0)
+        end
+    end
+end)
+
+-- Movement Tab
+moveTab.CreateToggle("Noclip", function(state)
+    noclipEnabled = state
+end)
+
+moveTab.CreateToggle("Fullbright", function(state)
+    fullbrightEnabled = state
+    if state then
+        Lighting.Ambient = Color3.new(1,1,1)
+        Lighting.ColorShift_Top = Color3.new(1,1,1)
+        Lighting.ColorShift_Bottom = Color3.new(1,1,1)
+    else
+        Lighting.Ambient = Color3.new(0.5,0.5,0.5)
+        Lighting.ColorShift_Top = Color3.new(0,0,0)
+        Lighting.ColorShift_Bottom = Color3.new(0,0,0)
+    end
+end)
+
+moveTab.CreateToggle("Infinite Jump", function(state)
+    infJumpEnabled = state
+end)
+
+RunService.Heartbeat:Connect(function()
+    if autoMake then
+        for _, item in pairs(shawarmaItems) do
+            firePrompt(item)
+            task.wait(0.25)
+        end
+    end
+
+    if noclipEnabled and localPlayer.Character then
+        for _, part in pairs(localPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+UserInputService.JumpRequest:Connect(function()
+    if infJumpEnabled and localPlayer.Character then
+        local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+ProximityPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+    if instantPrompt then
+        firePrompt(prompt)
+    end
+end)
+
+localPlayer.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
