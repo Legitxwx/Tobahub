@@ -1,0 +1,143 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/stysscythe/script/main/LibTest.lua"))()
+local Window = Library.Window('Blind Shot - Toba Hub')
+local Inf = Window.CreateTab('Information')
+local m = Window.CreateTab('Main')
+
+local BEAM_NAME = "ForcedBlueBeam"
+local BEAM_COLOR = Color3.fromRGB(0, 145, 250)
+local BEAM_LENGTH = 50
+
+local beamsEnabled = false
+local playersVisible = false
+local antiRagdollEnabled = false
+local localPlayer = Players.LocalPlayer
+
+local function ensureBlueBeam(part)
+    local attachment0 = part:FindFirstChild("BeamAttachment0") or Instance.new("Attachment")
+    attachment0.Name = "BeamAttachment0"
+    attachment0.Position = Vector3.zero
+    attachment0.Parent = part
+
+    local attachment1 = part:FindFirstChild("BeamAttachment1") or Instance.new("Attachment")
+    attachment1.Name = "BeamAttachment1"
+    attachment1.Position = Vector3.new(0, 0, BEAM_LENGTH)
+    attachment1.Parent = part
+
+    local beam = part:FindFirstChild(BEAM_NAME) or Instance.new("Beam")
+    beam.Name = BEAM_NAME
+    beam.Attachment0 = attachment0
+    beam.Attachment1 = attachment1
+    beam.Width0 = 0.2
+    beam.Width1 = 0.2
+    beam.FaceCamera = true
+    beam.Parent = part
+
+    beam.Enabled = true
+    beam.Color = ColorSequence.new(BEAM_COLOR)
+    beam.Transparency = NumberSequence.new(0)
+    beam.LightEmission = 1
+    beam.LightInfluence = 0
+end
+
+local function enforceVisibility(character)
+    for _, descendant in character:GetDescendants() do
+        if descendant:IsA("BasePart") then
+            if descendant.Name ~= "HumanoidRootPart" and descendant.Name ~= "hitbox" then
+                descendant.Transparency = 0
+            end
+            if descendant.Name:lower() == "ponto" then
+                ensureBlueBeam(descendant)
+            end
+        end
+    end
+end
+
+Inf.CreateDivider("Information")
+Inf.CreateButton("Server Player", function()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Server Info";
+        Text = "Players: "..#Players:GetPlayers();
+        Duration = 5;
+    })
+end)
+
+Inf.CreateButton("Join Discord", function()
+    setclipboard("http://discord.gg/discord")
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Discord";
+        Text = "Discord link copied!";
+        Duration = 5;
+    })
+end)
+
+m.CreateDivider("Main")
+
+m.CreateToggle("Show Beam", function(state)
+    beamsEnabled = state
+    if not state then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= localPlayer then
+                local character = player.Character
+                if character then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            local beam = part:FindFirstChild(BEAM_NAME)
+                            if beam then
+                                beam.Enabled = false
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+m.CreateToggle("Show Player", function(state)
+    playersVisible = state
+    if not state then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= localPlayer then
+                local character = player.Character
+                if character then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" and part.Name ~= "hitbox" then
+                            part.Transparency = 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+m.CreateToggle("Anti Ragdoll", function(state)
+    antiRagdollEnabled = state
+end)
+
+RunService.Heartbeat:Connect(function()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            local character = player.Character
+            if character then
+                if playersVisible or beamsEnabled then
+                    enforceVisibility(character)
+                end
+            end
+        end
+    end
+
+    if antiRagdollEnabled then
+        local character = localPlayer.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.PlatformStand = false
+                humanoid:ChangeState(0)
+            end
+        end
+    end
+end)
