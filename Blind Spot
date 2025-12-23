@@ -74,7 +74,6 @@ Inf.CreateButton("Join Discord", function()
 end)
 
 m.CreateDivider("Main")
-
 m.CreateToggle("Show Beam", function(state)
     beamsEnabled = state
     if not state then
@@ -135,8 +134,11 @@ RunService.Heartbeat:Connect(function()
         if character then
             local humanoid = character:FindFirstChildOfClass("Humanoid")
             if humanoid then
-                humanoid.PlatformStand = false
-                humanoid:ChangeState(0)
+                local state = humanoid:GetState()
+                if state == Enum.HumanoidStateType.Physics or state == Enum.HumanoidStateType.FallingDown then
+                    humanoid.PlatformStand = false
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                end
             end
         end
     end
