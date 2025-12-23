@@ -6,10 +6,10 @@ local RunService = game:GetService("RunService")
 local ScriptUpdated = true
 
 local WhitelistedGames = {
-    ["Spelling Bee"] = true,
-    ["Fisch Fishing"] = true,
+    ["Spelling Bee"] = false,
+    ["Fisch Fishing"] = false,
     ["Scary Shawarma Kiosk"] = true,
-    ["Obby Challenge"] = true
+    ["Blind Shot"] = true
 }
 
 local Games = {
@@ -29,17 +29,17 @@ local Games = {
     },
     {
         Name = "Scary Shawarma Kiosk",
-        ID = 11223344,
+        ID = 137826330724902,
         Thumbnail = "https://www.roblox.com/Thumbs/ShawarmaKiosk.png",
         Description = "Manage your kiosk and survive scary customers!",
-        Loadstring = "loadstring(game:HttpGet('https://pastebin.com/raw/ShawarmaScript'))()"
+        Loadstring = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Legitxwx/Tobahub/refs/heads/main/Scary%20Shawarma%20Kiosk'))()"
     },
     {
-        Name = "Obby Challenge",
-        ID = 44332211,
+        Name = "Blind Shot",
+        ID = 118614517739521,
         Thumbnail = "https://www.roblox.com/Thumbs/ObbyChallenge.png",
-        Description = "Complete tricky obstacle courses!",
-        Loadstring = "loadstring(game:HttpGet('https://pastebin.com/raw/ObbyScript'))()"
+        Description = "Shoot, Find Invisible Player",
+        Loadstring = "loadstring(game:HttpGet('https://raw.githubusercontent.com/Legitxwx/Tobahub/refs/heads/main/Blind%20Spot'))()"
     }
 }
 
