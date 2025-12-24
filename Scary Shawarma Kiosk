@@ -1,20 +1,31 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/stysscythe/script/main/LibTest.lua"))()
-local Window = Library.Window('Scary Shawarma Kiosk - Toba Hub')
-local tab = Window.CreateTab('Main')
-local moveTab = Window.CreateTab('Movement')
+if game.PlaceId ~= 128001665358186 then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Toba Hub",
+        Text = "This script only works in Scary Shawarma Kiosk",
+        Duration = 5
+    })
+    return
+end
 
 local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local VirtualUser = game:GetService("VirtualUser")
 local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
+
+local localPlayer = Players.LocalPlayer
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/stysscythe/script/main/LibTest.lua"))()
+local Window = Library.Window("Scary Shawarma Kiosk - Toba Hub")
+
+local mainTab = Window.CreateTab("Main")
+local moveTab = Window.CreateTab("Movement")
 
 local autoMake = false
 local instantPrompt = false
 local noclipEnabled = false
-local fullbrightEnabled = false
 local infJumpEnabled = false
 
 local shawarmaItems = {
@@ -38,55 +49,34 @@ local function firePrompt(prompt)
     end)
 end
 
-tab.CreateButton("Make Shawarma", function()
-    for _, item in pairs(shawarmaItems) do
-        firePrompt(item)
+mainTab.CreateButton("Make Shawarma", function()
+    for _, p in pairs(shawarmaItems) do
+        firePrompt(p)
         task.wait(0.25)
     end
 end)
 
-tab.CreateToggle("Auto Make Shawarma", function(state)
+mainTab.CreateToggle("Auto Make Shawarma", function(state)
     autoMake = state
 end)
 
-tab.CreateToggle("Instant Prompt", function(state)
+mainTab.CreateToggle("Instant Prompt", function(state)
     instantPrompt = state
 end)
 
-tab.CreateButton("Teleport Home", function()
-    local hrp = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
-    local doorBase = workspace:WaitForChild("Door"):WaitForChild("Base")
-    if hrp and doorBase then
-        hrp.CFrame = doorBase.CFrame + Vector3.new(0,3,0)
-    end
-end)
-
-tab.CreateButton("Teleport to Trash", function()
-    local hrp = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
-    local trash = workspace:WaitForChild("Street"):WaitForChild("tr")
-    if hrp and trash then
-        local target = (trash:IsA("BasePart") and trash) or (trash.PrimaryPart or trash:FindFirstChildWhichIsA("BasePart", true))
-        if target then
-            hrp.CFrame = target.CFrame + Vector3.new(0,3,0)
-        end
-    end
-end)
-
--- Movement Tab
 moveTab.CreateToggle("Noclip", function(state)
     noclipEnabled = state
 end)
 
 moveTab.CreateToggle("Fullbright", function(state)
-    fullbrightEnabled = state
     if state then
+        Lighting.Brightness = 5
         Lighting.Ambient = Color3.new(1,1,1)
-        Lighting.ColorShift_Top = Color3.new(1,1,1)
-        Lighting.ColorShift_Bottom = Color3.new(1,1,1)
+        Lighting.OutdoorAmbient = Color3.new(1,1,1)
     else
-        Lighting.Ambient = Color3.new(0.5,0.5,0.5)
-        Lighting.ColorShift_Top = Color3.new(0,0,0)
-        Lighting.ColorShift_Bottom = Color3.new(0,0,0)
+        Lighting.Brightness = 2
+        Lighting.Ambient = Color3.fromRGB(128,128,128)
+        Lighting.OutdoorAmbient = Color3.fromRGB(128,128,128)
     end
 end)
 
@@ -96,8 +86,8 @@ end)
 
 RunService.Heartbeat:Connect(function()
     if autoMake then
-        for _, item in pairs(shawarmaItems) do
-            firePrompt(item)
+        for _, p in pairs(shawarmaItems) do
+            firePrompt(p)
             task.wait(0.25)
         end
     end
@@ -113,9 +103,9 @@ end)
 
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled and localPlayer.Character then
-        local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        local hum = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end
 end)
@@ -130,4 +120,54 @@ localPlayer.Idled:Connect(function()
     VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     task.wait(1)
     VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
+
+local libraryGui
+for _, v in pairs(CoreGui:GetChildren()) do
+    if v:IsA("ScreenGui") and v.Name ~= "HideShowGui" then
+        libraryGui = v
+    end
+end
+
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "HideShowGui"
+toggleGui.Parent = CoreGui
+toggleGui.ResetOnSpawn = false
+
+local box = Instance.new("Frame", toggleGui)
+box.Size = UDim2.new(0,120,0,120)
+box.Position = UDim2.new(0,20,0.4,0)
+box.BackgroundColor3 = Color3.fromRGB(25,25,25)
+box.BorderSizePixel = 0
+box.Active = true
+box.Draggable = true
+
+Instance.new("UICorner", box).CornerRadius = UDim.new(0,12)
+
+local img = Instance.new("ImageLabel", box)
+img.Size = UDim2.new(1,-20,1,-50)
+img.Position = UDim2.new(0,10,0,10)
+img.BackgroundTransparency = 1
+img.Image = "rbxassetid://14884617443"
+img.ScaleType = Enum.ScaleType.Fit
+
+local btn = Instance.new("TextButton", box)
+btn.Size = UDim2.new(1,-20,0,30)
+btn.Position = UDim2.new(0,10,1,-35)
+btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+btn.TextColor3 = Color3.new(1,1,1)
+btn.Font = Enum.Font.GothamBold
+btn.TextSize = 14
+btn.BorderSizePixel = 0
+btn.Text = "Hide"
+
+Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+
+local visible = true
+btn.MouseButton1Click:Connect(function()
+    visible = not visible
+    if libraryGui then
+        libraryGui.Enabled = visible
+    end
+    btn.Text = visible and "Hide" or "Show"
 end)
