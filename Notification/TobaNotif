@@ -1,0 +1,60 @@
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local Toba = {}
+Toba.activeNotifs = {}
+
+local colorMap = {
+    red = Color3.fromRGB(220,38,38),
+    green = Color3.fromRGB(34,197,94),
+    yellow = Color3.fromRGB(250,204,21),
+    blue = Color3.fromRGB(59,130,246),
+    gray = Color3.fromRGB(120,120,120),
+    black = Color3.fromRGB(20,20,20),
+    white = Color3.fromRGB(255,255,255)
+}
+
+function Toba.Notify(data)
+    local player = Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    local color = colorMap[data.Color:lower()] or Color3.fromRGB(59,130,246)
+    local frame = Instance.new("Frame")
+    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    frame.BorderColor3 = color
+    frame.BorderSizePixel = 3
+    frame.AnchorPoint = Vector2.new(0.5,0)
+    frame.Position = UDim2.new(0.5,0,0,#Toba.activeNotifs * 80)
+    frame.BackgroundTransparency = 1
+    frame.Parent = playerGui
+    if data.Icon then
+        local iconLabel = Instance.new("TextLabel")
+        iconLabel.Text = data.Icon
+        iconLabel.TextColor3 = color
+        iconLabel.Font = Enum.Font.GothamBold
+        iconLabel.TextScaled = true
+        iconLabel.BackgroundTransparency = 1
+        iconLabel.Size = UDim2.new(0,40,0,40)
+        iconLabel.Position = UDim2.new(0,5,0,5)
+        iconLabel.Parent = frame
+    end
+    local title = Instance.new("TextLabel")
+    title.Text = data.Title or ""
+    title.TextColor3 = Color3.fromRGB(255,255,255)
+    title.BackgroundTransparency = 1
+    title.Font = Enum.Font.GothamBold
+    title.TextScaled = true
+    title.Size = UDim2.new(1,-50,0,25)
+    title.Position = UDim2.new(0,45,0,0)
+    title.Parent = frame
+    local desc = Instance.new("TextLabel")
+    desc.Text = data.Desc or ""
+    desc.TextColor3 = Color3.fromRGB(200,200,200)
+    desc.BackgroundTransparency = 1
+    desc.Font = Enum.Font.Gotham
+    desc.TextScaled = true
+    desc.Size = UDim2.new(1,-50,0,40)
+    desc.Position = UDim2.new(0,45,0,25)
+    desc.Parent = frame
+    table.insert(Toba.activeNotifs, frame)
+    TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency=0}):Play()
+end
