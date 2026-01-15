@@ -1,24 +1,21 @@
--- 3 Types Of Title Warning, Success, Error
--- Free To Use
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Legitxwx/Tobahub/main/Notification/TobaNotif"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Legitxwx/Tobahub/refs/heads/main/Notification/TobaNotif"))()
 
-Toba.Notify({
-    Title = "Warning",
-    Desc = "This is a warning",
-    Icon = "bird",
-    Color = "blue"
-})
+Notify{
+    title = "Error",
+    description = "Something failed",
+    color = "red",
+    icon = "alert-triangle",
+    iconType = "lucide",
+    duration = 5
+}
 
-Toba.Notify({
-    Title = "Success",
-    Desc = "Saved successfully",
-    Icon = "check",
-    Color = "green"
-})
+Notify{
+    title = "Success",
+    description = "Operation Complete",
+    color = "green",
+    icon = "alert-triangle",
+    iconType = "lucide",
+    duration = 5
+}
 
-Toba.Notify({
-    Title = "Error",
-    Desc = "Be careful!",
-    Icon = "warn",
-    Color = "yellow"
-})
+-- READ THE README 
