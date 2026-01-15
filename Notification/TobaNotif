@@ -1,60 +1,173 @@
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
 
-local Toba = {}
-Toba.activeNotifs = {}
+pcall(function()
+    CoreGui:FindFirstChild("NotifyUI"):Destroy()
+end)
 
-local colorMap = {
-    red = Color3.fromRGB(220,38,38),
-    green = Color3.fromRGB(34,197,94),
-    yellow = Color3.fromRGB(250,204,21),
-    blue = Color3.fromRGB(59,130,246),
-    gray = Color3.fromRGB(120,120,120),
-    black = Color3.fromRGB(20,20,20),
-    white = Color3.fromRGB(255,255,255)
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "NotifyUI"
+Gui.IgnoreGuiInset = true
+Gui.ResetOnSpawn = false
+Gui.Parent = CoreGui
+
+local Holder = Instance.new("Frame")
+Holder.Size = UDim2.new(0, 360, 1, 0)
+Holder.Position = UDim2.new(1, -380, 0, 0)
+Holder.BackgroundTransparency = 1
+Holder.Parent = Gui
+
+local Layout = Instance.new("UIListLayout")
+Layout.Padding = UDim.new(0, 10)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+Layout.Parent = Holder
+
+local Colors = {
+    red = Color3.fromRGB(255, 70, 70),
+    blue = Color3.fromRGB(0, 170, 255),
+    green = Color3.fromRGB(0, 255, 150),
+    yellow = Color3.fromRGB(255, 210, 0),
+    orange = Color3.fromRGB(255, 150, 0),
+    purple = Color3.fromRGB(170, 90, 255),
+    pink = Color3.fromRGB(255, 100, 200),
+    cyan = Color3.fromRGB(0, 255, 255),
+    gray = Color3.fromRGB(160,160,160),
+    white = Color3.fromRGB(255,255,255),
+    black = Color3.fromRGB(0,0,0),
+    error = Color3.fromRGB(255,70,70),
+    success = Color3.fromRGB(0,255,120),
+    warning = Color3.fromRGB(255,180,0),
+    info = Color3.fromRGB(0,170,255)
 }
 
-function Toba.Notify(data)
-    local player = Players.LocalPlayer
-    local playerGui = player:WaitForChild("PlayerGui")
-    local color = colorMap[data.Color:lower()] or Color3.fromRGB(59,130,246)
-    local frame = Instance.new("Frame")
-    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    frame.BorderColor3 = color
-    frame.BorderSizePixel = 3
-    frame.AnchorPoint = Vector2.new(0.5,0)
-    frame.Position = UDim2.new(0.5,0,0,#Toba.activeNotifs * 80)
-    frame.BackgroundTransparency = 1
-    frame.Parent = playerGui
-    if data.Icon then
-        local iconLabel = Instance.new("TextLabel")
-        iconLabel.Text = data.Icon
-        iconLabel.TextColor3 = color
-        iconLabel.Font = Enum.Font.GothamBold
-        iconLabel.TextScaled = true
-        iconLabel.BackgroundTransparency = 1
-        iconLabel.Size = UDim2.new(0,40,0,40)
-        iconLabel.Position = UDim2.new(0,5,0,5)
-        iconLabel.Parent = frame
+local function loadIcon(name, iconType)
+    if not name or not iconType then return nil end
+
+    local url
+    if iconType == "lucide" then
+        url = "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/" .. name .. ".png"
+    elseif iconType == "material" then
+        url = "https://fonts.gstatic.com/s/i/materialicons/" .. name .. "/v6/24px.png"
     end
-    local title = Instance.new("TextLabel")
-    title.Text = data.Title or ""
-    title.TextColor3 = Color3.fromRGB(255,255,255)
-    title.BackgroundTransparency = 1
-    title.Font = Enum.Font.GothamBold
-    title.TextScaled = true
-    title.Size = UDim2.new(1,-50,0,25)
-    title.Position = UDim2.new(0,45,0,0)
-    title.Parent = frame
-    local desc = Instance.new("TextLabel")
-    desc.Text = data.Desc or ""
-    desc.TextColor3 = Color3.fromRGB(200,200,200)
-    desc.BackgroundTransparency = 1
-    desc.Font = Enum.Font.Gotham
-    desc.TextScaled = true
-    desc.Size = UDim2.new(1,-50,0,40)
-    desc.Position = UDim2.new(0,45,0,25)
-    desc.Parent = frame
-    table.insert(Toba.activeNotifs, frame)
-    TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency=0}):Play()
+
+    if not url then return nil end
+
+    local asset
+    pcall(function()
+        if getsynassetfromurl then
+            asset = getsynassetfromurl(url)
+        elseif getcustomasset then
+            asset = getcustomasset(url)
+        end
+    end)
+
+    return asset
 end
+
+local function Notify(cfg)
+    cfg = cfg or {}
+
+    local title = cfg.title or "Notification"
+    local description = cfg.description or ""
+    local duration = cfg.duration or 4
+    local position = cfg.position or "bottom"
+    local iconName = cfg.icon
+    local iconType = cfg.iconType
+    local colorName = tostring(cfg.color or "info"):lower()
+    local color = Colors[colorName] or Colors.info
+
+    Layout.VerticalAlignment =
+        position == "top" and Enum.VerticalAlignment.Top or Enum.VerticalAlignment.Bottom
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -10, 0, 82)
+    Frame.Position = UDim2.new(1, 0, 0, 0)
+    Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    Frame.BackgroundTransparency = 0.05
+    Frame.BorderSizePixel = 0
+    Frame.ClipsDescendants = true
+    Frame.Parent = Holder
+
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
+
+    local Click = Instance.new("TextButton")
+    Click.Size = UDim2.fromScale(1,1)
+    Click.BackgroundTransparency = 1
+    Click.Text = ""
+    Click.Parent = Frame
+
+    local Bar = Instance.new("Frame")
+    Bar.Size = UDim2.new(0, 4, 1, 0)
+    Bar.BackgroundColor3 = color
+    Bar.BorderSizePixel = 0
+    Bar.Parent = Frame
+
+    local iconAsset = loadIcon(iconName, iconType)
+    local offset = iconAsset and 50 or 15
+
+    if iconAsset then
+        local Icon = Instance.new("ImageLabel")
+        Icon.Image = iconAsset
+        Icon.Size = UDim2.new(0, 28, 0, 28)
+        Icon.Position = UDim2.new(0, 12, 0, 12)
+        Icon.BackgroundTransparency = 1
+        Icon.Parent = Frame
+    end
+
+    local Title = Instance.new("TextLabel")
+    Title.Text = title
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 16
+    Title.TextXAlignment = Left
+    Title.TextColor3 = Color3.new(1,1,1)
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0, offset, 0, 10)
+    Title.Size = UDim2.new(1, -offset - 10, 0, 22)
+    Title.Parent = Frame
+
+    local Desc = Instance.new("TextLabel")
+    Desc.Text = description
+    Desc.Font = Enum.Font.Gotham
+    Desc.TextSize = 14
+    Desc.TextWrapped = true
+    Desc.TextXAlignment = Left
+    Desc.TextYAlignment = Top
+    Desc.TextColor3 = Color3.fromRGB(200,200,200)
+    Desc.BackgroundTransparency = 1
+    Desc.Position = UDim2.new(0, offset, 0, 32)
+    Desc.Size = UDim2.new(1, -offset - 10, 0, 40)
+    Desc.Parent = Frame
+
+    local Progress = Instance.new("Frame")
+    Progress.Size = UDim2.new(1, 0, 0, 3)
+    Progress.Position = UDim2.new(0, 0, 1, -3)
+    Progress.BackgroundColor3 = color
+    Progress.BorderSizePixel = 0
+    Progress.Parent = Frame
+
+    TweenService:Create(Frame, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {
+        Position = UDim2.new(0, 0, 0, 0)
+    }):Play()
+
+    TweenService:Create(Progress, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+        Size = UDim2.new(0, 0, 0, 3)
+    }):Play()
+
+    local closed = false
+    local function close()
+        if closed then return end
+        closed = true
+        TweenService:Create(Frame, TweenInfo.new(0.3), {
+            Position = UDim2.new(1, 0, 0, 0),
+            BackgroundTransparency = 1
+        }):Play()
+        task.wait(0.3)
+        Frame:Destroy()
+    end
+
+    Click.MouseButton1Click:Connect(close)
+    task.delay(duration, close)
+end
+
+getgenv().Notify = Notify
