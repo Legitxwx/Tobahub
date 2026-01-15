@@ -2,23 +2,36 @@
 
 This notification system creates clean, animated Roblox notifications with icon support, color names, and click-to-close functionality.
 
-The script must be executed once before using notifications.
+--------------------------------------------------
+
+INSTALLATION
+
+Put this at the TOP of your script before using Notify{}:
+
+```
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Legitxwx/Tobahub/refs/heads/main/Notification/TobaNotif"))()
+```
+
+This only needs to be executed once.
 
 --------------------------------------------------
 
-# BASIC USAGE
+BASIC USAGE
+
 ```
 Notify{
     title = "Title here",
     description = "Description text here"
 }
 ```
+
 Only title and description are required.
 Everything else is optional and has defaults.
 
 --------------------------------------------------
 
-# FULL USAGE EXAMPLE
+FULL USAGE EXAMPLE
+
 ```
 Notify{
     title = "Warning",
@@ -30,9 +43,10 @@ Notify{
     iconType = "lucide"
 }
 ```
+
 --------------------------------------------------
 
-# AVAILABLE VARIABLES
+AVAILABLE VARIABLES
 
 title (string)
 The main text shown at the top of the notification.
@@ -78,6 +92,62 @@ Icon name without file extension.
 
 iconType (string)
 Icon library to use.
+Values:
+lucide
+material
+
+--------------------------------------------------
+
+ICON LIBRARIES
+
+Lucide Icons:
+https://lucide.dev/icons/
+
+Example:
+```
+icon = "alert-triangle"
+iconType = "lucide"
+```
+
+Google Material Icons:
+https://fonts.google.com/icons
+
+Example:
+```
+icon = "check_circle"
+iconType = "material"
+```
+
+--------------------------------------------------
+
+BEHAVIOR
+
+- Click a notification to close it instantly
+- Notifications auto-close after duration time
+- Multiple notifications stack automatically
+- Default position is bottom of the screen
+
+--------------------------------------------------
+
+MINIMAL EXAMPLE
+
+```
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Legitxwx/Tobahub/refs/heads/main/Notification/TobaNotif"))()
+
+Notify{
+    title = "Loaded",
+    description = "Script is ready"
+}
+```
+
+--------------------------------------------------
+
+NOTES
+
+- The loadstring must be placed before any Notify{} calls
+- Script only needs to be loaded once
+- This system is executor-based
+- Icons load using executor asset functions
 Values:
 lucide
 material
