@@ -1,0 +1,423 @@
+local UI = loadstring(game:HttpGet("https://xan.bar/init.lua"))()
+
+local Window = UI.New({
+    Title = "Boostrap WAX",
+    Subtitle = "Loading...",
+    Theme = "Default",
+    Layout = "Default",
+    Size = UDim2.new(0, 620, 0, 480),
+    Logo = UI.Logos.XanBar,
+    ShowLogo = true,
+    WindowButtonStyle = "Default",
+    ShowUserInfo = true,
+    ShowActiveList = true,
+    ShowSettings = true,
+    ConfigName = "UntitledUni"
+})
+
+UI.FloatingButton({
+    Position = UDim2.new(0, 70, 1, -70),
+    Size = 56,
+    Icon = UI.Logos.XanBar,
+    Label = "Menu",
+    Draggable = true,
+    Callback = function()
+        Window:Toggle()
+    end
+})
+
+-- ICON FIX
+local playerIcon = UI.Icons.Player
+local Player = Window:AddTab("Player", playerIcon)
+
+-- SERVICES
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+
+-- VALUES
+local hooks = {
+    walkspeed = 32,
+    jumppower = 50
+}
+
+local currentSpeed = hooks.walkspeed
+local currentJump = hooks.jumppower
+
+-- META HOOKS
+local originalIndex
+local originalNewIndex
+
+originalIndex = hookmetamethod(game, "__index", function(self, property)
+    if not checkcaller()
+        and self:IsA("Humanoid")
+        and lp.Character
+        and self:IsDescendantOf(lp.Character) then
+
+        local prop = property:lower()
+        if hooks[prop] then
+            return hooks[prop]
+        end
+    end
+    return originalIndex(self, property)
+end)
+
+originalNewIndex = hookmetamethod(game, "__newindex", function(self, property, value)
+    if not checkcaller()
+        and self:IsA("Humanoid")
+        and lp.Character
+        and self:IsDescendantOf(lp.Character) then
+
+        local prop = property:lower()
+        if hooks[prop] then
+            hooks[prop] = value
+            return
+        end
+    end
+    return originalNewIndex(self, property, value)
+end)
+
+-- APPLY ON RESPAWN
+local function applyStats()
+    local char = lp.Character
+    if not char then return end
+    local hum = char:FindFirstChildWhichIsA("Humanoid")
+    if hum then
+        hum.WalkSpeed = hooks.walkspeed
+        hum.JumpPower = hooks.jumppower
+    end
+end
+
+lp.CharacterAdded:Connect(function()
+    task.wait(1)
+    applyStats()
+end)
+
+applyStats()
+
+-- INPUTS
+Player:AddInput("Enter Speed", function(text)
+    local num = tonumber(text)
+    if num then
+        currentSpeed = num
+    end
+end)
+
+Player:AddInput("Enter JumpPower", function(text)
+    local num = tonumber(text)
+    if num then
+        currentJump = num
+    end
+end)
+
+-- BUTTONS
+Player:CreateBorderedButton({
+    Name = "Apply Speed",
+    Callback = function()
+        hooks.walkspeed = currentSpeed
+        applyStats()
+    end
+})
+
+Player:CreateBorderedButton({
+    Name = "Apply JumpPower",
+    Callback = function()
+        hooks.jumppower = currentJump
+        applyStats()
+    end
+})
+
+Player:CreateBorderedButton({
+    Name = "Reset All",
+    Callback = function()
+        hooks.walkspeed = 16
+        hooks.jumppower = 50
+        applyStats()
+    end
+})
+
+-- FLY (UNCHANGED LOGIC)
+Player:CreateBorderedButton({
+    Name = "Fly",
+    Callback = function()
+        ----------------------------------------------------
+        -- FE BYPASS FLY
+        ----------------------------------------------------
+
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local player = Players.LocalPlayer
+        local char = player.Character or player.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        local hum = char:WaitForChild("Humanoid")
+
+        local Flying = false
+        local FlySpeed = 50
+        local FlyConnection
+
+        ----------------------------------------------------
+        -- GUI
+        ----------------------------------------------------
+        local gui = Instance.new("ScreenGui", player.PlayerGui)
+        gui.ResetOnSpawn = false
+
+        local Menu = Instance.new("Frame")
+        Menu.Parent = gui
+        Menu.Size = UDim2.new(0, 320, 0, 220)
+        Menu.Position = UDim2.new(0.1, 0, 0.3, 0)
+        Menu.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        Menu.BorderSizePixel = 0
+        Menu.Active = true
+        Menu.Draggable = true
+        local menuCorner = Instance.new("UICorner", Menu)
+        menuCorner.CornerRadius = UDim.new(0, 12)
+
+        -- Title
+        local Title = Instance.new("TextLabel")
+        Title.Parent = Menu
+        Title.Size = UDim2.new(1,0,0,50)
+        Title.BackgroundTransparency = 1
+        Title.Text = "Fly Bypass Ultra"
+        Title.TextColor3 = Color3.fromRGB(255,255,255)
+        Title.Font = Enum.Font.GothamBold
+        Title.TextScaled = true
+
+        -- Fly Toggle Button
+        local FlyToggle = Instance.new("TextButton")
+        FlyToggle.Parent = Menu
+        FlyToggle.Size = UDim2.new(1,-40,0,60)
+        FlyToggle.Position = UDim2.new(0,20,0,60)
+        FlyToggle.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+        FlyToggle.Text = "Activate Fly"
+        FlyToggle.TextColor3 = Color3.fromRGB(255,255,255)
+        FlyToggle.Font = Enum.Font.GothamBold
+        FlyToggle.TextScaled = true
+        local flyCorner = Instance.new("UICorner", FlyToggle)
+        flyCorner.CornerRadius = UDim.new(0, 8)
+
+        -- Destroy Button
+        local CloseBTN = Instance.new("TextButton")
+        CloseBTN.Parent = Menu
+        CloseBTN.Size = UDim2.new(1,-40,0,50)
+        CloseBTN.Position = UDim2.new(0,20,0,140)
+        CloseBTN.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        CloseBTN.Text = "Destroy"
+        CloseBTN.TextColor3 = Color3.fromRGB(255,255,255)
+        CloseBTN.Font = Enum.Font.GothamBold
+        CloseBTN.TextScaled = true
+        local closeCorner = Instance.new("UICorner", CloseBTN)
+        closeCorner.CornerRadius = UDim.new(0, 8)
+
+        -- Theme Toggle
+        local ThemeToggle = Instance.new("TextButton")
+        ThemeToggle.Parent = Menu
+        ThemeToggle.Size = UDim2.new(0, 100, 0, 30)
+        ThemeToggle.Position = UDim2.new(1,-120,0,10)
+        ThemeToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        ThemeToggle.Text = "Light Mode"
+        ThemeToggle.TextColor3 = Color3.fromRGB(255,255,255)
+        ThemeToggle.Font = Enum.Font.Gotham
+        ThemeToggle.TextScaled = true
+        local themeCorner = Instance.new("UICorner", ThemeToggle)
+        themeCorner.CornerRadius = UDim.new(0, 6)
+
+        local darkTheme = true
+        ThemeToggle.MouseButton1Click:Connect(function()
+            if darkTheme then
+                Menu.BackgroundColor3 = Color3.fromRGB(240,240,240)
+                Title.TextColor3 = Color3.fromRGB(30,30,30)
+                FlyToggle.BackgroundColor3 = Color3.fromRGB(0,120,255)
+                CloseBTN.BackgroundColor3 = Color3.fromRGB(180,180,180)
+                ThemeToggle.Text = "Dark Mode"
+            else
+                Menu.BackgroundColor3 = Color3.fromRGB(30,30,30)
+                Title.TextColor3 = Color3.fromRGB(255,255,255)
+                FlyToggle.BackgroundColor3 = Color3.fromRGB(0,120,255)
+                CloseBTN.BackgroundColor3 = Color3.fromRGB(100,100,100)
+                ThemeToggle.Text = "Light Mode"
+            end
+            darkTheme = not darkTheme
+        end)
+
+        ----------------------------------------------------
+        -- Fly Functions
+        ----------------------------------------------------
+        local function StartFly()
+            if Flying then return end
+            Flying = true
+            hum.PlatformStand = true
+
+            FlyConnection = RunService.RenderStepped:Connect(function()
+                if Flying then
+                    local cam = workspace.CurrentCamera
+                    if cam then
+                        local dir = cam.CFrame.LookVector
+                        hrp.Velocity = dir * FlySpeed + Vector3.new(0,FlySpeed/2,0)
+                    end
+                end
+            end)
+        end
+
+        local function StopFly()
+            Flying = false
+            hum.PlatformStand = false
+            if FlyConnection then FlyConnection:Disconnect() end
+            hrp.Velocity = Vector3.zero
+        end
+
+        -- Toggle Fly
+        FlyToggle.MouseButton1Click:Connect(function()
+            if Flying then
+                StopFly()
+                FlyToggle.Text = "Activate Fly"
+                FlyToggle.BackgroundColor3 = Color3.fromRGB(0,120,255)
+            else
+                StartFly()
+                FlyToggle.Text = "Deactivate Fly"
+                FlyToggle.BackgroundColor3 = Color3.fromRGB(180,50,50)
+            end
+        end)
+
+        -- Destroy GUI
+        CloseBTN.MouseButton1Click:Connect(function()
+            gui:Destroy()
+        end)
+    end
+})
+
+Player:AddToggle("Noclip ", { Default = false }, function(v)
+    local Players, RService = game:GetService("Players"), game:GetService("RunService")
+    local LocalP = Players.LocalPlayer
+    local Rm, Index, NIndex, NCall, Caller = getrawmetatable(game), getrawmetatable(game).__index, getrawmetatable(game).__newindex, getrawmetatable(game).__namecall, checkcaller or is_protosmasher_caller
+    local NoClip = false
+    setreadonly(Rm, false)
+
+    Rm.__newindex = newcclosure(function(self, Meme, Value)
+        if Caller() then return NIndex(self, Meme, Value) end 
+        if tostring(self) == "HumanoidRootPart" or tostring(self) == "Torso" then 
+            if Meme == "CFrame" and self:IsDescendantOf(LocalP.Character) then 
+                return true
+            end
+        end
+        return NIndex(self, Meme, Value)
+    end)
+    setreadonly(Rm, true)
+
+    RService.Stepped:Connect(function()
+        if NoClip and LocalP and LocalP.Character and LocalP.Character:FindFirstChild("Humanoid") then 
+            pcall(function()
+                if LocalP.Character:FindFirstChild("Head") then
+                    LocalP.Character.Head.CanCollide = false
+                end
+                if LocalP.Character:FindFirstChild("Torso") then
+                    LocalP.Character.Torso.CanCollide = false
+                end
+            end)
+        end
+    end)
+    
+    NoClip = v
+    Player:OnToggleChanged("Noclip ", function(state)
+        NoClip = state
+    end)
+end)
+
+Player:AddToggle("Anti-Kick", { Default = false }, function(v)
+    local plr = game:GetService("Players").LocalPlayer
+    local Anti
+
+    -- Function to enable Anti-Kick
+    local function EnableAntiKick()
+        if Anti then return end
+        Anti = hookmetamethod(game, "__namecall", function(self, ...)
+            if self == plr and getnamecallmethod():lower() == "kick" and v then
+                return warn("[ANTI-KICK] Attempted kick blocked")
+            end
+            return Anti and Anti(self, ...) or nil
+        end)
+    end
+
+    -- Function to disable Anti-Kick
+    local function DisableAntiKick()
+        if Anti then
+            -- Remove the hook by restoring the original method
+            Anti = nil
+        end
+    end
+
+    -- Toggle state
+    if v then
+        EnableAntiKick()
+    else
+        DisableAntiKick()
+    end
+
+    -- Update whenever the toggle changes
+    Player:OnToggleChanged("Anti-Kick", function(state)
+        v = state
+        if v then
+            EnableAntiKick()
+        else
+            DisableAntiKick()
+        end
+    end)
+end)
+
+Player:CreateBorderedButton({
+    Name = "Load ToraIsMe",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/gumanba/Scripts/main/ClimbtoSaveBrainrot"))()
+    end
+})
+
+-- MISC TAB (YOU SAID “ADD SOMETHING” 😭)
+local Misc = Window:AddTab("Misc", UI.Icons.Settings)
+
+-- Rejoin Server
+Misc:CreateBorderedButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, lp)
+    end
+})
+
+-- Destroy UI
+Misc:CreateBorderedButton({
+    Name = "Destroy UI",
+    Callback = function()
+        Window:Destroy()
+    end
+})
+
+-- Teleport to Spawn
+Misc:CreateBorderedButton({
+    Name = "Teleport to Spawn",
+    Callback = function()
+        local char = lp.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.CFrame = workspace:FindFirstChild("SpawnLocation") and workspace.SpawnLocation.CFrame or CFrame.new(0,10,0)
+        end
+    end
+})
+
+-- Full Bright (Simple Lighting Reset)
+Misc:CreateBorderedButton({
+    Name = "Full Bright",
+    Callback = function()
+        local lighting = game:GetService("Lighting")
+        lighting.Ambient = Color3.new(1,1,1)
+        lighting.OutdoorAmbient = Color3.new(1,1,1)
+        lighting.Brightness = 2
+        lighting.ClockTime = 14
+    end
+})
+
+-- Reset Character
+Misc:CreateBorderedButton({
+    Name = "Reset Character",
+    Callback = function()
+        local char = lp.Character
+        if char then
+            char:BreakJoints()
+        end
+    end
+})
